@@ -12,7 +12,12 @@ hidden FILE __stderr_FILE = {
 	.write = __stdio_write,
 	.seek = __stdio_seek,
 	.close = __stdio_close,
-	.lock = -1,
+#if MUSL_stdio_use_32bit_reentrant_mutex
+	.lock = MUSL_never_lock,
+#else
+	.lock_owner = MUSL_never_lock,
+	.lock_generation = 0
+#endif
 };
 FILE *const stderr = &__stderr_FILE;
 FILE *volatile __stderr_used = &__stderr_FILE;

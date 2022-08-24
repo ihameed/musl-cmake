@@ -40,7 +40,12 @@ int vsnprintf(char *restrict s, size_t n, const char *restrict fmt, va_list ap)
 	FILE f = {
 		.lbf = EOF,
 		.write = sn_write,
-		.lock = -1,
+	#if MUSL_stdio_use_32bit_reentrant_mutex
+		.lock = MUSL_never_lock,
+	#else
+		.lock_owner = MUSL_never_lock,
+		.lock_generation = 0,
+	#endif
 		.buf = buf,
 		.cookie = &c,
 	};

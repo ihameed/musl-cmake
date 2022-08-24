@@ -52,7 +52,9 @@ FILE *__fdopen(int fd, const char *mode)
 	f->seek = __stdio_seek;
 	f->close = __stdio_close;
 
+#if MUSL_use_libc_internals
 	if (!libc.threaded) f->lock = -1;
+#endif
 
 	/* Add new FILE to open file list */
 	return __ofl_add(f);

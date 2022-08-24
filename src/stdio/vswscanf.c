@@ -30,7 +30,13 @@ int vswscanf(const wchar_t *restrict s, const wchar_t *restrict fmt, va_list ap)
 	FILE f = {
 		.buf = buf, .buf_size = sizeof buf,
 		.cookie = (void *)s,
-		.read = wstring_read, .lock = -1
+		.read = wstring_read,
+	#if MUSL_stdio_use_32bit_reentrant_mutex
+		.lock = MUSL_never_lock,
+	#else
+		.lock_owner = MUSL_never_lock,
+		.lock_generation = 0
+	#endif
 	};
 	return vfwscanf(&f, fmt, ap);
 }
