@@ -31,7 +31,7 @@ int setrlimit(int resource, const struct rlimit *rlim)
 		rlim = &tmp;
 	}
 	int ret = __syscall(SYS_prlimit64, 0, resource, rlim, 0);
-#ifdef SYS_setrlimit
+#if defined(SYS_setrlimit) && MUSL_use_libc_internals
 	if (ret != -ENOSYS) return __syscall_ret(ret);
 
 	struct ctx c = {
