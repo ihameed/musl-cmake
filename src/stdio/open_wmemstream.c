@@ -51,7 +51,7 @@ static size_t wms_write(FILE *f, const unsigned char *buf, size_t len)
 		memset(c->buf + c->space, 0, 4*(len2 - c->space));
 		c->space = len2;
 	}
-	
+
 	len2 = mbsnrtowcs(c->buf+c->pos, (void *)&buf, len, c->space-c->pos, &c->mbs);
 	if (len2 == -1) return 0;
 	c->pos += len2;
@@ -94,7 +94,9 @@ FILE *open_wmemstream(wchar_t **bufp, size_t *sizep)
 	f->f.seek = wms_seek;
 	f->f.close = wms_close;
 
+#if MUSL_use_libc_internals
 	if (!libc.threaded) f->f.lock = -1;
+#endif
 
 	fwide(&f->f, 1);
 

@@ -42,7 +42,12 @@ int vswprintf(wchar_t *restrict s, size_t n, const wchar_t *restrict fmt, va_lis
 	FILE f = {
 		.lbf = EOF,
 		.write = sw_write,
-		.lock = -1,
+	#if MUSL_stdio_use_32bit_reentrant_mutex
+		.lock = MUSL_never_lock,
+	#else
+		.lock_owner = MUSL_never_lock,
+		.lock_generation = 0,
+	#endif
 		.buf = buf,
 		.buf_size = sizeof buf,
 		.cookie = &c,

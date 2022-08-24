@@ -6,8 +6,57 @@
 
 #define UNGET 8
 
-#define FFINALLOCK(f) ((f)->lock>=0 ? __lockfile((f)) : 0)
-#define FLOCK(f) int __need_unlock = ((f)->lock>=0 ? __lockfile((f)) : 0)
+#if MUSL_use_libc_internals
+	#define MUSL_stdio_use_32bit_reentrant_mutex 1
+	typedef __INT32_TYPE__ _stdio_owner_t;
+	#define MUSL_get_thread_label ((_stdio_owner_t) (__pthread_self()->tid))
+	#define MUSL_load_owner(f) ((_stdio_owner_t) ((f)->lock))
+	#define MUSL_lockval_requires_lock_p(x) ((x) >= 0)
+	#define MUSL_fake_thread_id (MAYBE_WAITERS - 1)
+	#define MUSL_has_waiters MAYBE_WAITERS
+	#define MUSL_never_lock -1
+#else
+	#if __INTPTR_WIDTH__ == 64
+		#define MUSL_stdio_use_32bit_reentrant_mutex 0
+		typedef __INT64_TYPE__ _stdio_owner_t;
+		#define MUSL_get_thread_label ((__INT64_TYPE__) (__pthread_self()))
+		#define MUSL_load_owner(f) ((_stdio_owner_t) (_ma_load8(&(f)->lock_owner, __ATOMIC_RELAXED)))
+		#define MUSL_lockval_requires_lock_p(x) (x >= 0)
+		#define MUSL_fake_thread_id 2
+		#define MUSL_has_waiters 1
+		#define MUSL_never_lock -1
+	#elif __INTPTR_WIDTH__ == 32
+		#define MUSL_stdio_use_32bit_reentrant_mutex 1
+		typedef __UINT32_TYPE__ _stdio_owner_t;
+		#define MUSL_get_thread_label ((__UINT32_TYPE__) __pthread_self())
+		#define MUSL_load_owner(f) ((_stdio_owner_t) ((f)->lock))
+		#define MUSL_lockval_requires_lock_p(x) (((x) & 0x1u) != 1)
+		#define MUSL_fake_thread_id 0xfffffffcu
+		#define MUSL_has_waiters 2
+		#define MUSL_never_lock 1
+	#else
+		#error "Unsupported machine bit width."
+	#endif
+	#if defined(__clang__)
+		#define _ma_load8(target, order) __c11_atomic_load(target, order)
+		#define _ma_load4(target, order) __c11_atomic_load(target, order)
+		#define _ma_wcas8(target, expected, desired, ok_order, fail_order) __c11_atomic_compare_exchange_weak(target, expected, desired, ok_order, fail_order)
+		#define _ma_scas8(target, expected, desired, ok_order, fail_order) __c11_atomic_compare_exchange_strong(target, expected, desired, ok_order, fail_order)
+		#define _ma_xchg8(target, val, order) __c11_atomic_exchange(target, val, order)
+		#define _ma_xadd(target, addend, order) __c11_atomic_fetch_add(target, addend, order)
+	#else
+		#define _ma_load8(target, order) __atomic_load_8(target, order)
+		#define _ma_load4(target, order) __atomic_load_4(target, order)
+		#define _ma_wcas8(target, expected, desired, ok_order, fail_order) __atomic_compare_exchange_8(target, expected, desired, 1, ok_order, fail_order)
+		#define _ma_scas8(target, expected, desired, ok_order, fail_order) __atomic_compare_exchange_8(target, expected, desired, 0, ok_order, fail_order)
+		#define _ma_xchg8(target, val, order) __atomic_exchange_8(target, val, order)
+		#define _ma_xadd(target, addend, order) __atomic_add_fetch(target, addend, order)
+	#endif
+#endif
+#define MUSL_requires_lock_p(f) (MUSL_lockval_requires_lock_p(MUSL_load_owner(f)))
+
+#define FFINALLOCK(f) (MUSL_requires_lock_p(f) ? __lockfile((f)) : 0)
+#define FLOCK(f) int __need_unlock = (MUSL_requires_lock_p(f) ? __lockfile((f)) : 0)
 #define FUNLOCK(f) do { if (__need_unlock) __unlockfile((f)); } while (0)
 
 #define F_PERM 1
@@ -35,7 +84,12 @@ struct _IO_FILE {
 	int pipe_pid;
 	long lockcount;
 	int mode;
+#if MUSL_stdio_use_32bit_reentrant_mutex
 	volatile int lock;
+#else
+	__INT64_TYPE__ _Atomic lock_owner;
+	__UINT32_TYPE__ _Atomic lock_generation;
+#endif
 	int lbf;
 	void *cookie;
 	off_t off;

@@ -16,7 +16,12 @@ FILE *__fopen_rb_ca(const char *filename, FILE *f, unsigned char *buf, size_t le
 	f->read = __stdio_read;
 	f->seek = __stdio_seek;
 	f->close = __stdio_close;
+#if MUSL_stdio_use_32bit_reentrant_mutex
 	f->lock = -1;
+#else
+	f->lock_owner = -1;
+	f->lock_generation = 0;
+#endif
 
 	return f;
 }
