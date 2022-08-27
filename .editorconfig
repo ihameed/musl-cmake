@@ -1,0 +1,10 @@
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+[*.{cpp,hpp,c,h,s,S}]
+indent_style = tab
+indent_size = tab
+tab_width = 8
