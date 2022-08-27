@@ -66,9 +66,15 @@ hidden int __towrite(FILE *);
 hidden void __stdio_exit(void);
 hidden void __stdio_exit_needed(void);
 
+// XXXih: TODO: Adjust this based on static/dynamic build configuration
+// Removing this attribute prevents __overflow from appearing in the export
+// list of position-independent executables (compiled with -fpie/-fPIE or
+// -fpic/-fPIC) when statically linked with this copy of musl.
+/*
 #if defined(__PIC__) && (100*__GNUC__+__GNUC_MINOR__ >= 303)
 __attribute__((visibility("protected")))
 #endif
+*/
 int __overflow(FILE *, int), __uflow(FILE *);
 
 hidden int __fseeko(FILE *, off_t, int);

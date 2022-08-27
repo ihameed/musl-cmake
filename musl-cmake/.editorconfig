@@ -1,0 +1,8 @@
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+[*.{cpp,hpp,c,h,s,S}]
+indent_style = space
+indent_size = 4
+tab_width = 8
