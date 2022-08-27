@@ -40,13 +40,13 @@ function(_def_lib_musl_partial_static)
     add_library("${target}" STATIC)
 
     target_sources("${target}" PRIVATE
-        ${musl-files-no-libc-internals-ctype}
+        #${musl-files-no-libc-internals-ctype} # locale??
+        #${musl-files-no-libc-internals-multibyte} # locale???
         ${musl-files-no-libc-internals-errno}
         ${musl-files-no-libc-internals-fcntl}
         ${musl-files-no-libc-internals-internal}
         ${musl-files-no-libc-internals-math}
         ${musl-files-no-libc-internals-misc}
-        ${musl-files-no-libc-internals-multibyte}
         ${musl-files-no-libc-internals-stat}
         ${musl-files-no-libc-internals-stdio}
         ${musl-files-no-libc-internals-string}

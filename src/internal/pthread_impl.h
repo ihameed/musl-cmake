@@ -13,6 +13,8 @@
 
 #include "pthread_arch.h"
 
+#if MUSL_use_libc_internals // (
+
 #define pthread __pthread
 
 struct pthread {
@@ -201,5 +203,11 @@ extern hidden unsigned __default_guardsize;
 #define DEFAULT_GUARD_MAX (1<<20)
 
 #define __ATTRP_C11_THREAD ((void*)(uintptr_t)-1)
+
+#else // ) (
+
+#include "../../musl-cmake/src/glibc-compat/src/glibc-compat-pthread-internal.h"
+
+#endif // )
 
 #endif

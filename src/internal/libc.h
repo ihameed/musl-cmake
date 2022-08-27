@@ -1,6 +1,9 @@
 #ifndef LIBC_H
 #define LIBC_H
 
+#include "../include/features.h"
+#if MUSL_use_libc_internals // (
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
@@ -54,5 +57,11 @@ extern hidden const char __libc_version[];
 
 hidden void __synccall(void (*)(void *), void *);
 hidden int __setxid(int, int, int, int);
+
+#else // ) (
+
+#include "../../musl-cmake/src/glibc-compat/src/glibc-compat-musl-global-state.h"
+
+#endif // )
 
 #endif

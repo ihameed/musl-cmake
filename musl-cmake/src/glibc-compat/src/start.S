@@ -72,6 +72,10 @@ __glibc_compat_start:
     mov %rsp, %r14 // argv; preserve in a c-call-preserved register
     and $~15, %rsp // align stack to 16 bytes
 
+    mov %r13, %rsi // argc
+    mov %r14, %rdx // argv
+    call __init_musl_global_state // init musl-glibc global data; this adheres to the "c" abi
+
     pushq %rax // push 8 bytes of arbitrary data to maintain 16-byte alignment after pushing stack_end
     pushq %rsp // stack_end
 
@@ -137,6 +141,9 @@ __glibc_compat_start:
 
     ldr x19, [sp, #0] // argc; preserve in a c-call-preserved register
     add x20, sp, #(1<<3) // argv; preserve in a c-call-preserved register
+    mov x1, x19 // argc
+    mov x2, x20 // argv
+    bl  __init_musl_global_state // init musl-glibc global data; this adheres to the "c" abi
 
 #if !MUSL_support_main_in_dll
     // This won't work if main, __libc_csu_init, and __libc_csu_fini are
