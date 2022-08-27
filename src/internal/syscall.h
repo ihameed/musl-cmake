@@ -391,7 +391,11 @@ static inline long __alt_socketcall(int sys, int sock, int cp, syscall_arg_t a, 
 #define __sys_open_cp(...) __SYSCALL_DISP(__sys_open_cp,,__VA_ARGS__)
 #define sys_open_cp(...) __syscall_ret(__sys_open_cp(__VA_ARGS__))
 
+#if defined(__cplusplus)
+hidden void __procfdname(char *, unsigned);
+#else
 hidden void __procfdname(char __buf[static 15+3*sizeof(int)], unsigned);
+#endif
 
 hidden void *__vdsosym(const char *, const char *);
 
