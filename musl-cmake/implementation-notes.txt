@@ -1,0 +1,2 @@
+https://bugzilla.redhat.com/show_bug.cgi?id=1875596 // glibc open_memstream was broken
+https://sourceware.org/bugzilla/show_bug.cgi?id=1190 // fgetc/fread were broken
