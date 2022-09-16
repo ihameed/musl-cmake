@@ -13,8 +13,14 @@
 
 #if !defined(MUSL_cmake_glibc_compat)
     #define MUSL_use_libc_internals 1
+    #define MUSL_use_posix_cancellation_points 1
 #else
     #define MUSL_use_libc_internals 0
+    #if !defined(MUSL_cmake_dont_support_posix_cancellation_points)
+        #define MUSL_use_posix_cancellation_points 1
+    #else
+        #define MUSL_use_posix_cancellation_points 0
+    #endif
 #endif
 
 #endif

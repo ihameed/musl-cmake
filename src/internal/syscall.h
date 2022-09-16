@@ -23,9 +23,13 @@
 typedef long syscall_arg_t;
 #endif
 
-hidden long __syscall_ret(unsigned long),
+hidden long __syscall_ret(unsigned long);
+
+#if MUSL_use_posix_cancellation_points
+hidden long
 	__syscall_cp(syscall_arg_t, syscall_arg_t, syscall_arg_t, syscall_arg_t,
 	             syscall_arg_t, syscall_arg_t, syscall_arg_t);
+#endif
 
 #define __syscall1(n,a) __syscall1(n,__scc(a))
 #define __syscall2(n,a,b) __syscall2(n,__scc(a),__scc(b))
@@ -45,6 +49,9 @@ hidden long __syscall_ret(unsigned long),
 #define syscall(...) __syscall_ret(__syscall(__VA_ARGS__))
 
 #define socketcall(nm,a,b,c,d,e,f) __syscall_ret(__socketcall(nm,a,b,c,d,e,f))
+
+#if MUSL_use_posix_cancellation_points // (
+
 #define socketcall_cp(nm,a,b,c,d,e,f) __syscall_ret(__socketcall_cp(nm,a,b,c,d,e,f))
 
 #define __syscall_cp0(n) (__syscall_cp)(n,0,0,0,0,0,0)
@@ -57,6 +64,23 @@ hidden long __syscall_ret(unsigned long),
 
 #define __syscall_cp(...) __SYSCALL_DISP(__syscall_cp,__VA_ARGS__)
 #define syscall_cp(...) __syscall_ret(__syscall_cp(__VA_ARGS__))
+
+#else // ) (
+
+#define socketcall_cp(nm,a,b,c,d,e,f) __syscall_ret(__socketcall(nm,a,b,c,d,e,f))
+
+#define __syscall_cp1(n,a) __syscall1(n,__scc(a))
+#define __syscall_cp2(n,a,b) __syscall2(n,__scc(a),__scc(b))
+#define __syscall_cp3(n,a,b,c) __syscall3(n,__scc(a),__scc(b),__scc(c))
+#define __syscall_cp4(n,a,b,c,d) __syscall4(n,__scc(a),__scc(b),__scc(c),__scc(d))
+#define __syscall_cp5(n,a,b,c,d,e) __syscall5(n,__scc(a),__scc(b),__scc(c),__scc(d),__scc(e))
+#define __syscall_cp6(n,a,b,c,d,e,f) __syscall6(n,__scc(a),__scc(b),__scc(c),__scc(d),__scc(e),__scc(f))
+#define __syscall_cp7(n,a,b,c,d,e,f,g) __syscall7(n,__scc(a),__scc(b),__scc(c),__scc(d),__scc(e),__scc(f),__scc(g))
+
+#define __syscall_cp(...) __SYSCALL_DISP(__syscall,__VA_ARGS__)
+#define syscall_cp(...) __syscall_ret(__syscall(__VA_ARGS__))
+
+#endif // )
 
 static inline long __alt_socketcall(int sys, int sock, int cp, syscall_arg_t a, syscall_arg_t b, syscall_arg_t c, syscall_arg_t d, syscall_arg_t e, syscall_arg_t f)
 {
